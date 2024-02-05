@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Object Detection</title>
+</head>
+<body>
+    <h1>Real-time Object Detection</h1>
+
+    <video id="webcam" width="640" height="480" autoplay></video>
+    <canvas id="output" width="640" height="480"></canvas>
+
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('output');
+        const ctx = canvas.getContext('2d');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch((err) => {
+                console.error('Error accessing webcam:', err);
+            });
+
+        const socket = new WebSocket('ws://' + window.location.host + '/video_feed');
+
+        socket.onmessage = (event) => {
+            const frame = new Image();
+            frame.src = `data:image/jpeg;base64,${event.data}`;
+            ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+        };
+    </script>
+    
+    <form action="/detect_objects" method="post" enctype="multipart/form-data">
+        <button type="submit">Detect Objects</button>
+    </form>
+</body>
+</html>
